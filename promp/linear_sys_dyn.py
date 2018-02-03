@@ -2,39 +2,74 @@ import numpy as np
 
 
 class LinearSysDyn():
+    """
+    A simple linear system dynamics
+    a system of mass 1kg and 1D state.
+    This class is a general linear system 
+    if a different system matrix (A) and different control matrix (B) is passed
+    """
 
-    def __init__(self):
+    def __init__(self, A=None, B=None, c=None, dt=0.005, mass=1.):
+        """
+        Constructor of the class
+        Args:
+        A = System matrix = > shape: [state_dim x state_dim]
+        B = Control matrix = > shape: [state_dim x action_dim]
+        c = Sysem drift matrix => shape: [state_dim x action_dim]
+        dt = time step
+        mass = mass of the body
+        """
 
         #system matrix
-        self._A = np.array([ [0.,1.], [0., 0.] ])
+        if A is None:
+            self._A = np.array([ [0.,1.], [0., 0.] ])
+        else:
+            self._A = A
 
         #control matrix
-        self._B = np.array([ [0.], [1.] ])
+        if B is None:
+            self._B = np.array([ [0.], [1.] ])
+        else:
+            self._B = B
 
         #drift vector
-        self._c = np.array([ [0.], [0.] ])
+        if c is None:
+            self._c = np.array([ [0.], [0.] ])
+        else:
+            self._c = c
         
-        action_noise = 12.25
-        self._H = np.array([ [0., 0.], [0., action_noise] ])
-        self._noise_std = 3.5
-        self._dt = 0.005
-        self._time_steps = 200
-        self._mass = 1.
-        self._state_dim = 2 #position + velocity
-        self._action_dim = 1
+        self._dt = dt
 
-    def compute_next_state(self, state, action):
+        self._mass = mass
+
+        self._state_dim, self._action_dim = self._B.shape #position + velocity
+
+
+    def compute_next_states(self, state_list, action_list):
+        """
+        A simple one step integration 
+        for computing next state, the operations are done for
+        the entire statelist and action list
+        Args: 
+        state_list = array of states shape => [time_steps, state_dim]
+        action_list = array of states shape => [time_steps, action_dim]
+        """
+
         #assuming action are forces
+        acc = (action_list*1./self._mass).squeeze()
 
-        acc = (action*1./self._mass).squeeze()
+        d_state_list = np.zeros_like(state_list)
 
-        d_state = np.zeros_like(state)
+        #assign the velocity
+        d_state_list[:, 0:self._state_dim/2] = state_list[:, 0:self._state_dim/2]
+        #assign the acceleration
+        d_state_list[:, self._state_dim/2:] = acc
 
-        d_state[:, 0] = state[:, 0]
-        d_state[:, 1] = acc
+        #euler integration position
+        state_new_list = state_list + self._dt * d_state_list
 
-        state_new = state + self._dt * d_state
+        #euler integration velocity
+        state_new_list[:, self._state_dim/2:] += 0.5*acc*self._dt**2
 
-        state_new[:, 1] += 0.5*acc*self._dt**2
+        return state_new_list
 
-        return state_new

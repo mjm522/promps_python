@@ -14,11 +14,18 @@ data = pickle.load(pickle_in)
 demos_list    = [data['steps']['states'][k][0][:,0] for k in range(100)]
 Ddemos_list   = [data['steps']['states'][k][0][:,1] for k in range(100)]
 
-def demo_generate_traj():
+#create a promb object by passing the data
+d_promp = DiscretePROMP(data=demos_list)
+d_promp.train()
 
-    #create a promb object by passing the data
-    d_promp = DiscretePROMP(data=demos_list)
-    d_promp.train()
+def plot_mean_and_sigma(mean, lower_bound, upper_bound, color_mean=None, color_shading=None):
+    # plot the shaded range of the confidence intervals
+    plt.fill_between(range(mean.shape[0]), lower_bound, upper_bound, color=color_shading, alpha=.5)
+    # plot the mean on top
+    plt.plot(mean, color_mean)
+
+
+def demo_generate_traj():
 
     #add a via point
     # d_promp.add_viapoint(0.7, 5)
@@ -58,22 +65,33 @@ def demo_generate_traj():
 
 
 def create_demo_traj():
+    """
+    This funciton shows how to compute 
+    closed form control distribution from the trajectory distribution
+    """
 
-    d_promp = DiscretePROMP(data=demos_list)
-    d_promp.train()
-
+    #this is just used for demo purposes
     lsd = LinearSysDyn()
 
     state  = data['steps']['states'][0][0]
     action = data['steps']['actions'][0][0]
 
-    promp_ctl = PROMPCtrl(promp_obj=d_promp, lin_dyn_obj=lsd)
-    ctrl_cmds = promp_ctl.compute_ctrl_traj(state_list = state)
+    promp_ctl = PROMPCtrl(promp_obj=d_promp)
+    promp_ctl.update_system_matrices(A=lsd._A, B=lsd._B)
+
+    ctrl_cmds_mean, ctrl_cmds_sigma = promp_ctl.compute_ctrl_traj(state_list=state)
 
     plt.figure("Ctrl cmds")
+
+    for k in range(lsd._action_dim):
+        
+        mean        = ctrl_cmds_mean[:, k]
+        lower_bound = mean - 3.*ctrl_cmds_sigma[:, k, k]
+        upper_bound = mean + 3*ctrl_cmds_sigma[:, k, k]
+
+        plot_mean_and_sigma(mean=mean, lower_bound=lower_bound, upper_bound=upper_bound, color_mean='g', color_shading='g')
+
     plt.plot(action, 'r')
-    plt.plot(ctrl_cmds[:,0], 'g')
-    
 
 
 def main():
