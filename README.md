@@ -1,4 +1,4 @@
-# promp library written in python
+# PROMP library written in python
 
 * Implementation of Probabilistic Movement Primitives in the [paper](https://link.springer.com/article/10.1007/s10514-017-9648-7)
 
