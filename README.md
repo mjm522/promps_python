@@ -11,8 +11,8 @@
 
 ### Instructions
 
-* Clone the folder
+* Clone the repo
 
-* From the cloned folder; run set_env_bash.sh
+* From the cloned repo folder; run set_env_bash.sh
 
 * Run the file demo_with_matlab_data.py from the demos folder (this uses a demonstration given in the data folder)
