@@ -7,3 +7,12 @@
 * Includes the closed form implementation of trajectory controller implementation as well.
 
 * Since one PROMP can only model one 1D, several of these has to be called to create a multi-dimensional PROMP
+
+
+### Instructions
+
+* Clone the folder
+
+* From the cloned folder; run set_env_bash.sh
+
+* Run the file demo_with_matlab_data.py from the demos folder (this uses a demonstration given in the data folder)
